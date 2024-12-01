@@ -1,0 +1,16 @@
+[package]
+name = "advent_of_code_2024"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "my_solutions"
+path = "src/lib.rs"
+
+[[bin]]
+name = "advent_of_code_2024"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.93"
+thiserror = "2.0.3"
