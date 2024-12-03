@@ -28,8 +28,8 @@ dampener_safe_with diff_safe xs =
         go (Unsafe x : Unsafe y : ds) = diff_safe (x + y) && all is_safe ds
         go (Safe x : Unsafe y : Safe z : ds) =
             (diff_safe (x + y) || diff_safe (y + z)) && all is_safe ds
-        go (Unsafe x : ds) = all is_safe ds
-        go (Safe x : ds) = go ds in
+        go (Unsafe _ : ds) = all is_safe ds
+        go (Safe _ : ds) = go ds in
     go diffs
 
 dampener_safe :: [Int] -> Bool
