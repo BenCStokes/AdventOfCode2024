@@ -25,9 +25,7 @@ dampener_safe_with :: (Int -> Bool) -> [Int] -> Bool
 dampener_safe_with diff_safe xs =
     let diffs = map (\d -> if diff_safe d then Safe d else Unsafe d) (differences xs) in
     let go [] = True
-        go [_] = True
         go (Unsafe x : Unsafe y : ds) = diff_safe (x + y) && all is_safe ds
-        go [_, _] = True
         go (Safe x : Unsafe y : Safe z : ds) =
             (diff_safe (x + y) || diff_safe (y + z)) && all is_safe ds
         go (Unsafe x : ds) = all is_safe ds
