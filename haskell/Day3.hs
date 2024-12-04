@@ -76,7 +76,7 @@ parseInstruction = parseAny
     uncurry Mul <$> parseMul
   ]
 
-data State = State { total :: Int, mul_enabled :: Bool }
+data State = State { total :: !Int, mul_enabled :: !Bool }
 
 runInstruction :: State -> Instruction -> State
 runInstruction state instruction = case instruction of
