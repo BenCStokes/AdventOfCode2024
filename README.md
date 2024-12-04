@@ -1,9 +1,5 @@
 # Advent of Code 2024
-I'm solving Advent of Code 2024 in various programming languages (listed below).
+I'm solving Advent of Code 2024 in Haskell (and maybe other languages; so far I've also done Day 1 in Rust).
 
-## Day 1
-- Haskell
-- Rust
-
-## Day 2
-- Haskell
+# Progress
+I have completed days 1 to 3.
