@@ -1,4 +1,6 @@
 import Data.List (stripPrefix)
+import Data.Maybe (catMaybes, listToMaybe)
+import Data.Foldable (foldl')
 
 newtype Parse a = Parse (String -> Maybe (String, a))
 
@@ -6,9 +8,7 @@ runParse :: Parse a -> String -> Maybe (String, a)
 runParse (Parse p) = p
 
 instance Functor Parse where
-    fmap f px = do
-        x <- px
-        return (f x)
+    fmap f = (>>= return . f)
 
 instance Applicative Parse where
     pure x = Parse (\s -> Just (s, x))
@@ -64,11 +64,7 @@ part1 :: String -> Int
 part1 = sum . map (uncurry (*)) . allOccurrences parseMul
 
 parseAny :: [Parse a] -> Parse a
-parseAny = Parse . go
-  where go [] s = Nothing
-        go (p:ps) s = case runParse p s of
-            Nothing -> go ps s
-            parsed -> parsed
+parseAny ps = Parse $ \s -> listToMaybe . catMaybes $ map (flip runParse s) ps
 
 data Instruction = Do | DoNot | Mul Int Int
 
@@ -93,7 +89,7 @@ initialState :: State
 initialState = State { total = 0, mul_enabled = True }
 
 part2 :: String -> Int
-part2 = total . foldl runInstruction initialState . allOccurrences parseInstruction
+part2 = total . foldl' runInstruction initialState . allOccurrences parseInstruction
 
 main :: IO ()
 main = do
