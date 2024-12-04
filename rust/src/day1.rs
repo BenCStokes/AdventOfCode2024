@@ -102,8 +102,8 @@ fn example_input() {
 }
 
 pub fn part1(mut input: Input) -> u32 {
-    input.left_list.sort();
-    input.right_list.sort();
+    input.left_list.sort_unstable();
+    input.right_list.sort_unstable();
     let mut total_distance = 0;
     for (left, right) in input.left_list.into_iter().zip(input.right_list) {
         total_distance += u32::abs_diff(left, right);
