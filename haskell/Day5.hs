@@ -5,7 +5,7 @@ import qualified Data.HashSet as HashSet
 import Data.Maybe (fromMaybe)
 import System.IO (stderr, hPutStrLn)
 import Data.Graph (graphFromEdges, topSort)
-import Data.List (sortOn)
+import Data.List (sortOn, partition)
 
 import Parse
 
@@ -48,11 +48,7 @@ split_updates_by_in_order input =
     let add_before set page = foldl (flip HashSet.insert) set . fromMaybe [] $ before !? page in
     let forbidden_sets = scanl add_before HashSet.empty in
     let in_order update = not . or . zipWith (HashSet.member) update $ forbidden_sets update in
-    let go good bad [] = (good, bad)
-        go good bad (update:updates)
-            | in_order update = go (update:good) bad updates
-            | otherwise = go good (update:bad) updates in
-    go [] [] $ updates input
+    partition in_order $ updates input
 
 part1 :: Input -> Word
 part1 = sum . map middle . fst . split_updates_by_in_order
