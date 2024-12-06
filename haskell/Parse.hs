@@ -51,3 +51,17 @@ skip str = Parse $ fmap (,()) . stripPrefix str
 
 parseAny :: [Parse a] -> Parse a
 parseAny ps = Parse $ \s -> listToMaybe . catMaybes $ map (flip runParse s) ps
+
+parseSplitOnChar :: Char -> Parse a -> Parse [a]
+parseSplitOnChar separator parseSection = Parse (go . (separator:))
+  where go [] = Just ("", [])
+        go s = flip runParse s $ do
+            skip [separator]
+            x <- parseSection
+            xs <- Parse go
+            return (x : xs)
+
+parseAll :: Parse a -> String -> Maybe a
+parseAll p s = do
+    ("", x) <- runParse p s
+    return x
