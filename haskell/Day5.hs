@@ -64,10 +64,7 @@ part2 input =
                 [((), page, []) | page <- update, not $ HashMap.member page after] in
           let (graph, nodeFromVertex, _) = graphFromEdges adjlist in
           let page_order = [page | (_, page, _) <- nodeFromVertex <$> topSort graph] in
-          let index_map =
-                foldl (\m (i, page) -> HashMap.insert page i m) HashMap.empty
-                $ zip [0..] page_order in
-          sortOn (index_map !) update in -- nth_element opportunity detected, iykyk
+          page_order in
     let incorrectly_ordered_updates = snd $ split_updates_by_in_order input in
     sum $ map (middle . sort_update) incorrectly_ordered_updates
 
