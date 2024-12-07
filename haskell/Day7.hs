@@ -50,8 +50,25 @@ can_solve equation =
         [] -> False
         x:xs -> go xs xs x $ HashSet.singleton x
 
+brute_force_possibilities :: [Word -> Word -> Word] -> Word -> [Word] -> [Word]
+brute_force_possibilities _ start [] = [start]
+brute_force_possibilities ops start (x:xs) = do
+    op <- ops
+    brute_force_possibilities ops (op start x) xs
+
+-- This brute force actually solves part 2 in a few seconds.
+can_solve_brute_force :: [Word -> Word -> Word] -> Equation -> Bool
+can_solve_brute_force ops (Equation { result, operands }) = elem result
+    $ brute_force_possibilities ops (head operands) (tail operands)
+
 part1 :: Input -> Word
-part1 = sum . map result . filter can_solve
+part1 = sum . map result . filter (can_solve_brute_force [(+), (*)])
+
+(.||.) :: Word -> Word -> Word
+x .||. y = read $ show x ++ show y
+
+part2 :: Input -> Word
+part2 = sum . map result . filter (can_solve_brute_force [(+), (*), (.||.)])
 
 main :: IO ()
 main = do
@@ -59,3 +76,5 @@ main = do
     let input = parse contents
     putStr "Part 1: "
     print (part1 input)
+    putStr "Part 2: "
+    print (part2 input)
