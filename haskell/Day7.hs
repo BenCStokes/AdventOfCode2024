@@ -42,7 +42,7 @@ can_solve equation =
                       then HashSet.insert with_add set
                       else set in
                 let with_mul = prev * n in
-                if with_mul <= result equation then HashSet.insert with_mul set else set in
+                if with_mul <= result equation then HashSet.insert with_mul set' else set' in
           go xs (drop 2 fast) (total + x)
             . HashSet.foldl' (add_successors x) HashSet.empty
         go [] _ _ = error "This shouldn't be possible" in
