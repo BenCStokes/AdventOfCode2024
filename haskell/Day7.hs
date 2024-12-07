@@ -32,10 +32,10 @@ work_backwards least =
 
 can_solve :: Equation -> Bool
 can_solve equation =
-    let go slow [] total =
-          let from_end = work_backwards total (result equation) slow in
+    let go slow [] =
+          let from_end = work_backwards 0 (result equation) slow in
           any (flip HashSet.member from_end)
-        go (x:xs) fast total =
+        go (x:xs) fast =
           let add_successors n set prev =
                 let with_add = prev + n in
                 let set' = if with_add <= result equation
@@ -43,12 +43,11 @@ can_solve equation =
                       else set in
                 let with_mul = prev * n in
                 if with_mul <= result equation then HashSet.insert with_mul set' else set' in
-          go xs (drop 2 fast) (total + x)
-            . HashSet.foldl' (add_successors x) HashSet.empty
-        go [] _ _ = error "This shouldn't be possible" in
+          go xs (drop 2 fast) . HashSet.foldl' (add_successors x) HashSet.empty
+        go [] _ = error "This shouldn't be possible" in
     case operands equation of
         [] -> False
-        x:xs -> go xs xs x $ HashSet.singleton x
+        x:xs -> go xs xs $ HashSet.singleton x
 
 brute_force_possibilities :: [Word -> Word -> Word] -> Word -> [Word] -> [Word]
 brute_force_possibilities _ start [] = [start]
@@ -62,7 +61,7 @@ can_solve_brute_force ops (Equation { result, operands }) = elem result
     $ brute_force_possibilities ops (head operands) (tail operands)
 
 part1 :: Input -> Word
-part1 = sum . map result . filter (can_solve_brute_force [(+), (*)])
+part1 = sum . map result . filter can_solve
 
 (.||.) :: Word -> Word -> Word
 x .||. y = read $ show x ++ show y
