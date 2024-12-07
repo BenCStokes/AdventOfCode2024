@@ -20,35 +20,61 @@ parse input =
           return $ Equation { result, operands } in
     fromMaybe (error "Invalid input") . mapM (parseAll parseEquation) $ lines input
 
-work_backwards :: Word -> Word -> [Word] -> HashSet Word
-work_backwards least =
+-- Argument order: result -> rhs -> lhs
+type InverseOp = Word -> Word -> Maybe Word
+
+inv_add :: InverseOp
+inv_add x y = Just (x - y)
+
+inv_mul :: InverseOp
+inv_mul x y =
+    let (q, r) = x `quotRem` y in
+    if r == 0 then Just q else Nothing
+
+inv_cat :: InverseOp
+inv_cat x 0 = Just x
+inv_cat x y =
+    let (xh, xt) = x `quotRem` 10 in
+    let (yh, yt) = y `quotRem` 10 in
+    if xt == yt then inv_cat xh yh else Nothing
+
+work_backwards :: [InverseOp] -> Word -> Word -> [Word] -> HashSet Word
+work_backwards ops least =
     let add_predecessors n set next =
-          let with_add = next - n in
-          let set' = if with_add >= least then HashSet.insert with_add set else set in
-          let (with_mul, res) = next `quotRem` n in
-          if res == 0 && with_mul >= least then HashSet.insert with_mul set' else set' in
+          let try_op op = case op next n of
+                Just lhs | lhs >= least -> Just lhs
+                _ -> Nothing in
+          foldl (\s op -> fromMaybe s $ flip HashSet.insert s <$> try_op op) set ops in
     let step n = HashSet.foldl' (add_predecessors n) HashSet.empty in
     foldr step . HashSet.singleton
 
-can_solve :: Equation -> Bool
-can_solve equation =
+type Op = Word -> Word -> Word
+
+cat_words :: Op
+cat_words x 0 = x
+cat_words x y =
+    let (yh, yt) = y `quotRem` 10 in
+    10 * cat_words x yh + yt
+
+can_solve :: [Op] -> [InverseOp] -> Equation -> Bool
+can_solve ops inverse_ops equation =
     let go slow [] =
-          let from_end = work_backwards 0 (result equation) slow in
+          let from_end = work_backwards inverse_ops
+                         (head $ operands equation) (result equation) slow in
           any (flip HashSet.member from_end)
         go (x:xs) fast =
           let add_successors n set prev =
-                let with_add = prev + n in
-                let set' = if with_add <= result equation
-                      then HashSet.insert with_add set
-                      else set in
-                let with_mul = prev * n in
-                if with_mul <= result equation then HashSet.insert with_mul set' else set' in
+                foldl (\s op -> let out = op prev n in
+                       if out <= result equation
+                       then HashSet.insert out s
+                       else s) set ops in
           go xs (drop 2 fast) . HashSet.foldl' (add_successors x) HashSet.empty
         go [] _ = error "This shouldn't be possible" in
     case operands equation of
         [] -> False
         x:xs -> go xs xs $ HashSet.singleton x
 
+{-
 brute_force_possibilities :: [Word -> Word -> Word] -> Word -> [Word] -> [Word]
 brute_force_possibilities _ start [] = [start]
 brute_force_possibilities ops start (x:xs) = do
@@ -59,15 +85,16 @@ brute_force_possibilities ops start (x:xs) = do
 can_solve_brute_force :: [Word -> Word -> Word] -> Equation -> Bool
 can_solve_brute_force ops (Equation { result, operands }) = elem result
     $ brute_force_possibilities ops (head operands) (tail operands)
+-}
 
 part1 :: Input -> Word
-part1 = sum . map result . filter can_solve
+part1 = sum . map result . filter (can_solve [(+), (*)] [inv_add, inv_mul])
 
 (.||.) :: Word -> Word -> Word
 x .||. y = read $ show x ++ show y
 
 part2 :: Input -> Word
-part2 = sum . map result . filter (can_solve_brute_force [(+), (*), (.||.)])
+part2 = sum . map result . filter (can_solve [(+), (*), cat_words] [inv_add, inv_mul, inv_cat])
 
 main :: IO ()
 main = do
