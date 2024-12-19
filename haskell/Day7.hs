@@ -57,9 +57,6 @@ can_solve ops equation =
 part1 :: Input -> Word
 part1 = sum . map result . filter (can_solve [inv_add, inv_mul])
 
-(.||.) :: Word -> Word -> Word
-x .||. y = read $ show x ++ show y
-
 part2 :: Input -> Word
 part2 = sum . map result . filter (can_solve [inv_add, inv_mul, inv_cat])
 
